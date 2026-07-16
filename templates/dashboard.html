@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AI Pricing Analytics Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+/* Background */
+
+body{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+min-height:100vh;
+padding-bottom:60px;
+}
+
+/* Title */
+
+h1{
+text-align:center;
+margin-top:40px;
+margin-bottom:20px;
+font-size:36px;
+color:white;
+letter-spacing:1px;
+}
+
+/* Container */
+
+.dashboard-container{
+width:85%;
+margin:auto;
+margin-top:30px;
+}
+
+/* KPI GRID */
+
+.kpi-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:30px;
+margin-top:40px;
+}
+
+/* KPI CARD */
+
+.kpi-card{
+background:white;
+padding:30px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+text-align:center;
+transition:0.3s;
+min-height:140px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.kpi-card:hover{
+transform:translateY(-6px);
+box-shadow:0 15px 35px rgba(0,0,0,0.25);
+}
+
+.kpi-card h3{
+color:#2c5364;
+font-size:18px;
+margin-bottom:10px;
+}
+
+.kpi-card p{
+font-size:28px;
+font-weight:bold;
+color:#111;
+}
+
+/* GRAPH SECTION */
+
+.graph{
+margin-top:45px;
+background:white;
+padding:30px;
+border-radius:18px;
+box-shadow:0 12px 30px rgba(0,0,0,0.25);
+transition:0.3s;
+}
+
+.graph:hover{
+transform:scale(1.01);
+}
+
+.graph h2{
+margin-bottom:15px;
+color:#2c5364;
+font-size:22px;
+text-align:center;
+}
+
+/* Divider */
+
+.section-divider{
+height:3px;
+width:120px;
+background:#2c5364;
+margin:10px auto 25px auto;
+border-radius:4px;
+}
+
+.insight-box{
+background:#f4f8ff;
+padding:20px;
+border-radius:12px;
+line-height:1.8;
+font-size:15px;
+color:#2c5364;
+}
+
+.insight-box p{
+margin-bottom:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Dynamic Pricing Analytics Dashboard</h1>
+
+<div class="dashboard-container">
+
+    <div class="graph">
+
+<h2>🧠 AI Business Insights</h2>
+<div class="section-divider"></div>
+
+<div class="insight-box">
+
+<p><strong>Market Status:</strong> {{market_status}}</p>
+<p><strong>Pricing Suggestion:</strong> {{pricing_suggestion}}</p>
+<p><strong>Demand Trend:</strong> {{demand_trend}}</p>
+<p><strong>Risk Level:</strong> {{risk_level}}</p>
+
+</div>
+
+</div>
+
+<!-- KPI CARDS -->
+
+<div class="kpi-grid">
+
+<div class="kpi-card">
+<h3>Average Price</h3>
+<p>₹ {{avg_price}}</p>
+</div>
+
+<div class="kpi-card">
+<h3>Average Demand</h3>
+<p>{{avg_demand}}</p>
+</div>
+
+<div class="kpi-card">
+<h3>Total Inventory</h3>
+<p>{{inventory}}</p>
+</div>
+
+<div class="kpi-card">
+<h3>Total Revenue</h3>
+<p>₹ {{revenue}}</p>
+</div>
+
+<div class="kpi-card">
+<h3>Average Inventory</h3>
+<p>{{avg_inventory}}</p>
+</div>
+
+<div class="kpi-card">
+<h3>Highest Price</h3>
+<p>₹ {{max_price}}</p>
+</div>
+
+</div>
+
+<!-- GRAPHS -->
+
+<div class="graph">
+<h2>Demand vs Optimal Price</h2>
+<div class="section-divider"></div>
+{{ demand_graph | safe }}
+</div>
+
+<div class="graph">
+<h2>Competitor Price Impact</h2>
+<div class="section-divider"></div>
+{{ competitor_graph | safe }}
+</div>
+
+<div class="graph">
+<h2>Inventory vs Price</h2>
+<div class="section-divider"></div>
+{{ inventory_graph | safe }}
+</div>
+
+<div class="graph">
+<h2>Seasonal Pricing Impact</h2>
+<div class="section-divider"></div>
+{{ season_graph | safe }}
+</div>
+
+<div class="graph">
+<h2>Demand Distribution</h2>
+<div class="section-divider"></div>
+{{ demand_dist_graph | safe }}
+</div>
+
+<div class="graph">
+
+<h2>Live Demand vs Price Trend</h2>
+
+<div class="section-divider"></div>
+
+<canvas id="liveChart"></canvas>
+
+</div>
+
+</div>
+<script>
+let chart;
+
+window.onload = function(){
+
+function updateChart(){
+
+    fetch('/live-dashboard-data')
+    .then(res => res.json())
+    .then(data => {
+
+        const canvas = document.getElementById('liveChart');
+
+        // 🔥 SAFETY CHECK (MOST IMPORTANT)
+        if(!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        const labels = data.demand_series.map((_, i) => i+1);
+
+        if(chart){
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data.demand_series;
+            chart.data.datasets[1].data = data.price_series;
+            chart.update();
+        } else {
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Demand',
+                            data: data.demand_series,
+                            borderColor: '#2c5364',
+                            backgroundColor: 'rgba(44,83,100,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Price',
+                            data: data.price_series,
+                            borderColor: '#3f6df6',
+                            backgroundColor: 'rgba(63,109,246,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: "#2c5364" }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: "#2c5364" },
+                            grid: { color: "#e0e0e0" }
+                        },
+                        y: {
+                            ticks: { color: "#2c5364" },
+                            grid: { color: "#e0e0e0" }
+                        }
+                    }
+                }
+            });
+        }
+
+    })
+    .catch(err => console.log("Chart Error:", err));
+}
+
+// run safely
+updateChart();
+setInterval(updateChart, 5000);
+
+};
+</script>
+</body>
+</html>

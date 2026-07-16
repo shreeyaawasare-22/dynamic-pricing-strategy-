@@ -1,0 +1,33 @@
+<h2>Product Pricing Database</h2>
+
+<table border="1">
+
+<tr>
+<th>ID</th>
+<th>Category</th>
+<th>Cost</th>
+<th>Competitor</th>
+<th>Demand</th>
+<th>Inventory</th>
+<th>Season</th>
+<th>Traffic</th>
+<th>Optimal Price</th>
+</tr>
+
+{% for row in data %}
+
+<tr>
+<td>{{row[0]}}</td>
+<td>{{row[1]}}</td>
+<td>{{row[2]}}</td>
+<td>{{row[3]}}</td>
+<td>{{row[4]}}</td>
+<td>{{row[5]}}</td>
+<td>{{row[6]}}</td>
+<td>{{row[7]}}</td>
+<td>{{row[8]}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
