@@ -32,3 +32,13 @@ Visualize pricing insights and business impact.
 
 Business Impact:
 The system helps businesses make data-driven pricing decisions, increase sales, improve profitability, and respond quickly to changing market conditions.
+
+## Download the Trained Model
+
+The trained model is not included in this repository because it exceeds GitHub's file size limit.
+
+Download it from:
+
+https://drive.google.com/file/d/1lSBCORy9zacO3MIoXKS0Q31-23Oqj3iv/view?usp=sharing
+
+Place the downloaded `price_model.pkl` file in the project root directory before running the application.
